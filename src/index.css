@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   DESIGN TOKEN BROOKIES — Tahap 15A
+   Nilai diambil langsung dari prototype:
+   https://brookies-cookie-nn.netlify.app/css/style.css
+   Satu tempat untuk warna, font, tipografi, radius, shadow, spacing.
+   ============================================================ */
+@theme {
+  /* Warna inti prototype */
+  --color-brown: #542b1d;
+  --color-brown-soft: #704332;
+  --color-cream: #faf5ed;
+  --color-cream-deep: #f2e7d8;
+  --color-pink: #e8bfc0;
+  --color-red: #9e3f3b;
+  --color-ink: #3e2b23;
+  --color-muted: #89766b;
+  --color-line: #e9ddd0;
+  --color-surface: #fffdf9;
+  --color-band: #f0e5d7;
+
+  /* Warna pendukung yang juga dipakai prototype (admin) */
+  --color-admin: #f8f6f2;
+  --color-table: #f6efe7;
+  --color-table-ink: #755646;
+  --color-active: #76503f;
+  --color-side-caption: #d2aa96;
+  --color-accent: #c69a7d;
+  --color-success: #e8f1e6;
+  --color-success-ink: #477344;
+  --color-warning: #f8edda;
+  --color-warning-ink: #986a20;
+  --color-cancel: #f5e1df;
+  --color-error: #a52d2d;
+  --color-footer: #f7eee5;
+  --color-footer-sub: #d8c3b4;
+
+  /* Font prototype: DM Sans (teks) + Playfair Display (judul/brand) */
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Playfair Display', serif;
+
+  /* Hierarki tipografi prototype */
+  --text-eyebrow: 11px;
+  --text-brand: 23px;
+  --text-hero: clamp(42px, 5vw, 64px);
+  --text-page: 44px;
+  --text-section: 34px;
+  --text-heading: 30px;
+  --text-stat: 24px;
+  --text-panel: 18px;
+  --tracking-eyebrow: 2.2px;
+  --leading-body: 1.8;
+
+  /* Komponen */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 11px;
+  --radius-login: 14px;
+  --radius-arch: 180px 180px 16px 16px;
+  --shadow-soft: 0 18px 35px rgba(84, 43, 29, .12);
+  --spacing-gutter: 26px;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-cream);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  /* Alias untuk aturan lama di App.css tanpa menduplikasi nilai_hex. */
+  --brown: var(--color-brown);
+  --brown-light: var(--color-brown-soft);
+  --red: var(--color-red);
+  --pink: var(--color-pink);
+  --cream: var(--color-cream);
+  --beige: var(--color-cream-deep);
+  --border: var(--color-line);
+  --text: var(--color-ink);
+  --muted: var(--color-muted);
+  /* Dipakai aturan lama di App.css; tanpa alias ini kartu/header jadi transparan. */
+  --surface: var(--color-surface);
+  --footer: var(--color-footer);
+}
+
+/* Base sengaja berada di layer `base` agar utility Tailwind (mis. text-[13px]
+   pada button/input) tidak kalah oleh CSS global yang tidak ber-layer. */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: var(--color-pink);
+    color: var(--color-ink);
+  }
+
+  img {
+    max-width: 100%;
+  }
+}

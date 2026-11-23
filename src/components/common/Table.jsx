@@ -1,0 +1,2 @@
+// KOMPONEN UI UMUM — dipindahkan dari App.jsx (Tahap 1).
+export default function Table({headers,children}){return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-[12px]"><thead className="bg-table text-[12px] font-bold uppercase tracking-wide text-table-ink"><tr>{headers.map(h=><th key={h} className="px-4 py-3">{h}</th>)}</tr></thead><tbody className="divide-y divide-line">{children}</tbody></table></div>}

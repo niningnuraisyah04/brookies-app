@@ -1,0 +1,2 @@
+// KOMPONEN UI UMUM — dipindahkan dari App.jsx (Tahap 1).
+export default function PageTitle({eyebrow,title,desc,action,variant='admin'}){const ukuran=variant==='public'?'text-page':'text-heading';return <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-eyebrow font-bold uppercase tracking-eyebrow text-red">{eyebrow}</p><h2 className={`mt-1 font-display ${ukuran} font-bold text-ink`}>{title}</h2><p className="mt-1 text-[13px] text-muted">{desc}</p></div>{action}</div>}

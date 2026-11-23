@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     FITUR SEMENTARA — EKSPOR DATA LAMA BROOKIES
+     ------------------------------------------------------------
+     Halaman ini dibuka di http://localhost:5173/ekspor-localstorage.html
+     supaya berada di origin yang sama dengan LocalStorage (port 5173).
+
+     ATURAN KEAMANAN:
+     - HANYA membaca localStorage.getItem('brookiesTahap4').
+     - TIDAK pernah memanggil setItem/removeItem/clear.
+     - TIDAK menyentuh kunci 'brookies_token' dan tidak menampilkannya.
+     - TIDAK berkomunikasi dengan backend/MySQL.
+     ============================================================ -->
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ekspor Data LocalStorage — Brookies</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f8f5f0;color:#35271f;margin:0;padding:40px 20px}
+    .kartu{max-width:720px;margin:auto;background:#fff;border:1px solid #eadfd4;border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(80,50,30,.06)}
+    h1{margin:0 0 6px;font-size:22px;color:#513729}
+    p.desc{color:#8b7565;font-size:14px;margin:0 0 22px}
+    button{background:#6d4938;color:#fff;border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    pre{background:#faf6f1;border:1px solid #eee3d9;border-radius:10px;padding:16px;font-size:13px;white-space:pre-wrap;word-break:break-word;min-height:80px}
+    .sukses{color:#2f7d55}.gagal{color:#a65f50;font-weight:600}
+    label{display:block;margin:18px 0 8px;font-size:13px;color:#6d5b4d}
+    code{background:#f5eee7;padding:2px 6px;border-radius:5px}
+  </style>
+</head>
+<body>
+  <div class="kartu">
+    <h1>Ekspor Data LocalStorage Brookies</h1>
+    <p class="desc">Membaca <code>brookiesTahap4</code> dari origin ini secara read-only, lalu mengunduhnya sebagai JSON. Data asli di browser tidak diubah.</p>
+
+    <button id="tombol">Periksa &amp; Unduh JSON</button>
+    <label><input type="checkbox" id="namaWaktu" /> Gunakan nama file dengan timestamp (jika ingin menghindari nama yang sama)</label>
+
+    <h3 style="margin-top:24px;font-size:15px;color:#513729">Hasil pemeriksaan</h3>
+    <pre id="hasil">Belum ada pemeriksaan.</pre>
+  </div>
+
+  <script>
+    // Kunci yang dibaca. Kunci token sengaja TIDAK disentuh.
+    const KUNCI_DATA = 'brookiesTahap4';
+    const KATEGORI = ['transaksi', 'pengeluaran', 'produksi', 'resep'];
+
+    document.getElementById('tombol').addEventListener('click', () => {
+      const hasil = document.getElementById('hasil');
+      hasil.className = '';
+
+      try {
+        // 1. Baca mentah. getItem bersifat read-only.
+        const mentah = localStorage.getItem(KUNCI_DATA);
+        if (mentah === null) {
+          throw new Error('Kunci brookiesTahap4 tidak ditemukan di LocalStorage origin ini.');
+        }
+
+        // 2. Pastikan JSON valid.
+        let data;
+        try {
+          data = JSON.parse(mentah);
+        } catch {
+          throw new Error('Isi brookiesTahap4 bukan JSON yang valid.');
+        }
+
+        if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+          throw new Error('Format brookiesTahap4 bukan objek.');
+        }
+
+        // 3. Validasi keempat kategori wajib ada.
+        const baris = [];
+        for (const k of KATEGORI) {
+          if (!Array.isArray(data[k])) {
+            throw new Error(`Kategori "${k}" tidak ditemukan atau bukan array.`);
+          }
+          baris.push(`${k}: ${data[k].length} data`);
+        }
+
+        // 4. Pastikan token tidak ikut terekspor.
+        if (mentah.includes('brookies_token') ||
+            /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\./.test(mentah)) {
+          throw new Error('Terdeteksi pola token di dalam data. Ekspor dibatalkan.');
+        }
+
+        // 5. Unduh JSON rapi. Nama default sesuai permintaan;
+        //    browser akan menambah "(1)" jika nama sudah dipakai, jadi tidak menimpa.
+        const nama = document.getElementById('namaWaktu').checked
+          ? `backup_brookies_localstorage_${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+          : 'backup_brookies_localstorage.json';
+
+        const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nama;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        hasil.className = 'sukses';
+        hasil.textContent =
+          `BERHASIL — ${nama}\n\n` +
+          baris.join('\n') +
+          '\n\nValidasi: JSON valid, seluruh kategori ada, tanpa token.\n' +
+          'LocalStorage asli tidak diubah.';
+
+      } catch (err) {
+        hasil.className = 'gagal';
+        hasil.textContent = 'GAGAL: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

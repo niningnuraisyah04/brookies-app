@@ -1,0 +1,334 @@
+
+/* BROOKIES - PREMIUM BAKERY STYLE */
+
+/* Warna dan font kini berasal dari design token di index.css. */
+
+#root {
+  min-height: 100vh;
+}
+
+/* Public website */
+.brookies-public {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--brown);
+}
+
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+
+.public-logo {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pink);
+  color: var(--red);
+  font-family: var(--font-display);
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.public-brand {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: bold;
+  color: var(--brown);
+}
+
+.public-tagline {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+.public-nav button {
+  transition: color .2s ease;
+}
+
+.public-nav button:hover {
+  color: var(--red);
+}
+
+.brookies-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+  max-width: 1500px;
+  margin: auto;
+  padding: 90px 38px 75px;
+}
+
+.hero-kicker {
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.hero-heading {
+  margin: 28px 0;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 5.3vw, 82px);
+  line-height: 1.08;
+  letter-spacing: -3px;
+  color: var(--brown);
+}
+
+.hero-heading span {
+  color: var(--red);
+}
+
+.hero-highlight {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 7px;
+  background: var(--pink);
+  color: var(--brown);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.hero-description {
+  max-width: 650px;
+  margin-top: 48px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1.9;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.brookies-button {
+  padding: 17px 25px;
+  border: 1px solid var(--brown);
+  border-radius: 12px;
+  background: var(--brown);
+  color: white;
+  font-weight: 700;
+  transition: .25s ease;
+}
+
+.brookies-button:hover {
+  background: var(--red);
+  border-color: var(--red);
+  transform: translateY(-2px);
+}
+
+.brookies-button-outline {
+  background: var(--surface);
+  color: var(--brown);
+}
+
+.hero-photo-frame {
+  position: relative;
+  padding: 12px;
+  border-radius: 100px 100px 18px 18px;
+  background: white;
+}
+
+.hero-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 88px 88px 12px 12px;
+}
+
+.hero-sticker {
+  position: absolute;
+  top: 35px;
+  left: -25px;
+  display: grid;
+  width: 105px;
+  height: 105px;
+  place-items: center;
+  border: 6px solid white;
+  border-radius: 50%;
+  background: var(--red);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* Product section */
+.menu-section {
+  max-width: 1500px;
+  margin: auto;
+  padding: 35px 36px 90px;
+}
+
+.menu-eyebrow {
+  color: var(--muted);
+}
+
+.menu-title {
+  margin-top: 5px;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: bold;
+  color: var(--brown);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.product-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: 12px;
+  transition: transform .18s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+}
+
+
+
+.product-photo {
+  width: 100%;
+  height: 170px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius-control);
+  background-color: var(--beige);
+}
+
+
+
+.product-info {
+  padding: 0 2px 2px;
+}
+
+.product-name {
+  margin: 13px 0 5px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.product-price {
+  margin-bottom: 13px;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.product-order {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+  padding: 12px 19px;
+  border-radius: var(--radius-control);
+  background: var(--brown);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.product-order:hover {
+  background: var(--red);
+}
+
+/* Footer */
+.public-footer {
+  padding: 50px 20px;
+  background: var(--brown);
+  color: var(--footer);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .brookies-hero {
+    grid-template-columns: 1fr;
+    padding: 55px 25px;
+  }
+
+  .hero-photo-frame {
+    max-width: 650px;
+    margin: auto;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .public-brand {
+    font-size: 22px;
+  }
+
+  .public-logo {
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
+  }
+
+  .brookies-hero {
+    padding: 45px 20px;
+    gap: 35px;
+  }
+
+  .hero-heading {
+    font-size: 48px;
+    letter-spacing: -2px;
+  }
+
+  .hero-description {
+    margin-top: 25px;
+    font-size: 16px;
+  }
+
+  .hero-sticker {
+    width: 80px;
+    height: 80px;
+    font-size: 10px;
+  }
+
+  .menu-section {
+    padding: 25px 18px 60px;
+  }
+
+  .menu-title {
+    font-size: 30px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .product-photo {
+    height: 150px;
+  }
+}

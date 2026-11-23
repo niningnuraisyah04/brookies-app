@@ -1,0 +1,17 @@
+// FITUR DASHBOARD — dipindahkan dari App.jsx (Tahap 5A).
+// Data tetap berasal dari response API yang dimuat App.jsx; tidak ada fetch baru.
+import { motion } from 'motion/react'
+import { BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,Legend } from 'recharts'
+import PageTitle from '@/components/common/PageTitle'
+import Button from '@/components/common/Button'
+import { rupiah } from '@/lib/utils'
+
+export default function Dashboard({ ringkasan, transaksi, allBahan, status, setPage }) {
+  // Grafik dan kartu sama-sama memakai agregat dari backend (ringkasan.data).
+  const chartData=(ringkasan?.perBulan||[]).map(b=>({bulan:b.nama,pendapatan:b.pendapatan,pengeluaran:b.pengeluaran}))
+  const angkaRingkasan=ringkasan?.ringkasan||{}
+  // Batas stok tidak diubah; hanya jumlah item yang ditampilkan yang diperluas.
+  const bahanMenipis=allBahan.filter(b=>b.stok<=b.minimum)
+  const cards=[['Total Pendapatan',rupiah(angkaRingkasan.pendapatan)],['Total Pengeluaran',rupiah(angkaRingkasan.pengeluaran)],['Keuntungan',rupiah(angkaRingkasan.keuntungan)],['Jumlah Transaksi Selesai',angkaRingkasan.jumlahTransaksi??0]]
+  return <><PageTitle eyebrow="Ringkasan usaha" title="Dashboard" desc="Pantau aktivitas dan performa usaha Brookies."/><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map(([t,v],i)=><motion.div key={t} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*.06}} className="rounded-panel border border-line bg-white p-5"><p className="text-[12px] text-muted">{t}</p><p className="mt-3 font-display text-stat font-bold text-ink">{v}</p></motion.div>)}</div><div className="mt-5 grid gap-5 xl:grid-cols-[1.6fr_1fr]"><div className="rounded-panel border border-line bg-white p-5"><h3 className="mb-4 font-bold">Pendapatan & Pengeluaran</h3><div className="h-72"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)"/><XAxis dataKey="bulan"/><YAxis tickFormatter={v=>`${Math.round(v/1000)}k`}/><Tooltip formatter={v=>rupiah(v)}/><Legend/><Bar dataKey="pendapatan" fill="var(--color-brown)" radius={[5,5,0,0]}/><Bar dataKey="pengeluaran" fill="var(--color-pink)" radius={[5,5,0,0]}/></BarChart></ResponsiveContainer></div></div><div className="rounded-panel border border-line bg-white p-5"><h3 className="mb-4 font-bold">Status Transaksi</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={status.map(s=>({name:s,value:transaksi.filter(t=>t.status===s).length}))} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85}>{['var(--color-brown)','var(--color-accent)','var(--color-pink)','var(--color-red)'].map(c=><Cell key={c} fill={c}/>)}</Pie><Tooltip/><Legend/></PieChart></ResponsiveContainer></div></div></div><div className="mt-5 rounded-panel border border-line bg-white p-5"><h3 className="font-bold">Stok bahan yang perlu diperhatikan</h3><div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{bahanMenipis.slice(0,10).map(b=><div key={b.id} className="rounded-control bg-cream p-3 text-[12px]"><b>{b.nama}</b><p className="mt-1 text-muted">Stok {b.stok} {b.satuan} · minimum {b.minimum}</p></div>)}{allBahan.every(b=>b.stok>b.minimum)&&<p className="text-sm text-muted">Tidak ada stok di bawah batas minimum.</p>}</div>{bahanMenipis.length>0&&<div className="mt-4"><Button kind="outline" onClick={()=>setPage('Bahan Baku')}>Lihat semua bahan baku</Button></div>}</div></>
+}
