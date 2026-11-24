@@ -34,6 +34,8 @@ export const config = {
     password: process.env.DB_PASSWORD || '',
     name: process.env.DB_NAME || 'brookies_db',
     connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+    ssl: process.env.DB_SSL === 'true',
+    sslCa: process.env.DB_SSL_CA || '',
   },
 
   // JWT dipakai untuk menandatangani token login admin.
@@ -63,6 +65,9 @@ export function validasiConfigServer() {
 
   if (!config.database.name) masalah.push('DB_NAME belum diisi di .env');
   if (!config.jwt.secret) masalah.push('JWT_SECRET belum diisi di .env');
+  if (process.env.NODE_ENV === 'production' && /^ganti_dengan_secret_acak_anda$/i.test(config.jwt.secret)) {
+    masalah.push('JWT_SECRET produksi masih memakai nilai contoh.');
+  }
 
   if (masalah.length) {
     throw new Error(`Konfigurasi server tidak lengkap: ${masalah.join('; ')}`);

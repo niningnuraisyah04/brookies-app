@@ -12,8 +12,9 @@ import cors from 'cors';
 import { config, validasiConfigServer } from './config/env.js';
 import { cekKoneksiDatabase, tutupKoneksiDatabase } from './config/database.js';
 
-// Middleware error terpusat.
+// Middleware error, keamanan, dan pembatas percobaan login.
 import { routeTidakDitemukan, penangananError } from './middleware/errorHandler.js';
+import { headerKeamanan } from './middleware/security.js';
 import { ApiError } from './utils/apiError.js';
 
 // Seluruh router API (autentikasi + data operasional + laporan).
@@ -33,11 +34,20 @@ try {
   process.exit(1);
 }
 
+if (!process.env.NODE_ENV) {
+  console.warn('[CONFIG] NODE_ENV belum diset. Gunakan NODE_ENV=production saat deploy.');
+}
+
 const app = express();
 
 // ============================================================
 // MIDDLEWARE GLOBAL
 // ============================================================
+
+app.disable('x-powered-by');
+// Render meneruskan alamat klien melalui X-Forwarded-For (satu hop proxy).
+app.set('trust proxy', 1);
+app.use(headerKeamanan);
 
 // CORS: hanya frontend yang tercantum di CORS_ORIGIN yang boleh mengakses.
 // Bisa diisi beberapa origin dengan dipisah koma di .env.
@@ -74,8 +84,7 @@ app.get('/api/db-check', async (req, res) => {
   res.status(hasil.ok ? 200 : 503).json({
     success: hasil.ok,
     status: hasil.ok ? 'connected' : 'error',
-    database: hasil.database,
-    message: hasil.ok ? 'Koneksi MySQL berhasil.' : 'Koneksi MySQL gagal.',
+    message: hasil.ok ? 'Layanan siap.' : 'Layanan sedang tidak tersedia.',
   });
 });
 
@@ -110,9 +119,10 @@ const server = app.listen(config.port, async () => {
 
   // Cek koneksi saat start agar masalah database segera terlihat.
   const hasil = await cekKoneksiDatabase();
+  // Nama database sengaja tidak dicetak, termasuk di log hosting.
   console.log(hasil.ok
-    ? `[DB] Terhubung ke database ${hasil.database}`
-    : `[DB] PERINGATAN: tidak dapat terhubung ke ${hasil.database}`);
+    ? '[DB] Koneksi database berhasil.'
+    : '[DB] PERINGATAN: koneksi database gagal.');
 });
 
 // Menutup pool koneksi dengan rapi saat proses dihentikan.

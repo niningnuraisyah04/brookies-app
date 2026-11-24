@@ -6,8 +6,17 @@
 // Konfigurasi dibaca dari server/config/env.js.
 // ============================================================
 
+import fs from 'node:fs';
 import mysql from 'mysql2/promise';
 import { config } from './env.js';
+
+// TLS hanya dipakai jika DB_SSL=true. Koneksi lokal tetap tanpa TLS.
+const opsiSsl = !config.database.ssl
+  ? undefined
+  : {
+      rejectUnauthorized: true,
+      ...(config.database.sslCa ? { ca: fs.readFileSync(config.database.sslCa, 'utf8') } : {}),
+    };
 
 // Membuat pool koneksi. Kredensial berasal dari .env, bukan source code.
 const db = mysql.createPool({
@@ -19,6 +28,7 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: config.database.connectionLimit,
   queueLimit: 0,
+  ...(opsiSsl ? { ssl: opsiSsl } : {}),
   // Tanggal dari MySQL dikembalikan sebagai string 'YYYY-MM-DD'
   // agar formatnya konsisten dengan frontend.
   dateStrings: true,

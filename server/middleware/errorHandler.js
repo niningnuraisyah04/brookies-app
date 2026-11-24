@@ -6,7 +6,6 @@
 // detail database/stack trace ke frontend.
 // ============================================================
 
-import { config } from '../config/env.js';
 import { ApiError } from '../utils/apiError.js';
 
 // Middleware untuk route yang tidak ditemukan (404).
@@ -59,15 +58,9 @@ export function penangananError(error, req, res, _next) {
 
   const info = terjemahkanErrorDatabase(error);
 
-  // Detail error mentah hanya dikirim saat development dan itu pun
-  // dibatasi pada pesan singkat, bukan stack trace.
-  const detail = config.corsOrigin && process.env.NODE_ENV === 'development'
-    ? { detail: error.message }
-    : {};
-
+  // Detail internal tidak pernah dikirim ke client, apa pun nilai NODE_ENV.
   res.status(info.status).json({
     success: false,
     message: info.message,
-    ...detail,
   });
 }

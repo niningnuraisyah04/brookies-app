@@ -1,0 +1,20 @@
+// ============================================================
+// HEADER KEAMANAN HTTP — Tahap 7
+// ------------------------------------------------------------
+// HSTS hanya dikirim saat NODE_ENV=production agar tidak mengganggu
+// pengembangan lokal yang memakai http://.
+// ============================================================
+
+export function headerKeamanan(_req, res, next) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+
+  next();
+}

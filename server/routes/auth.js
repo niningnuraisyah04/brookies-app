@@ -8,11 +8,13 @@
 
 import express from 'express';
 import bcrypt from 'bcrypt';
+import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import db from '../config/database.js';
 import { config } from '../config/env.js';
 import authMiddleware from '../middleware/auth.js';
 import { validasiBody, teks } from '../middleware/validate.js';
+import { batasPercobaanLogin } from '../middleware/rateLimit.js';
 import { asyncHandler, unauthorized, notFound } from '../utils/apiError.js';
 
 const router = express.Router();
@@ -23,10 +25,14 @@ const validasiLogin = validasiBody({
   password: teks('Password', { min: 1, max: 200 }),
 });
 
+// Hash acak dibuat sekali saat startup untuk menyamakan waktu respons
+// ketika username tidak ditemukan. Bukan kredensial dan tidak disimpan.
+const HASH_DUMMY = bcrypt.hashSync(crypto.randomUUID(), 10);
+
 // ------------------------------------------------------------
 // LOGIN ADMIN
 // ------------------------------------------------------------
-router.post('/login', validasiLogin, asyncHandler(async (req, res) => {
+router.post('/login', batasPercobaanLogin, validasiLogin, asyncHandler(async (req, res) => {
   const { username, password } = req.dataValid;
 
   // Ambil password hash hanya untuk perbandingan bcrypt di server.
@@ -39,6 +45,7 @@ router.post('/login', validasiLogin, asyncHandler(async (req, res) => {
   // Pesan yang sama untuk username salah maupun password salah
   // agar tidak membocorkan akun yang terdaftar.
   if (rows.length === 0) {
+    await bcrypt.compare(password, HASH_DUMMY);
     throw unauthorized('Username atau password salah.');
   }
 

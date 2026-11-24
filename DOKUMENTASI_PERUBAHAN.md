@@ -1,6 +1,6 @@
 # Dokumentasi Perubahan — Website Manajemen Usaha Brookies
 
-Tanggal: 21 November 2026 (diperbarui 22 November 2026 — Tahap 15A & 15B)
+Tanggal: 21 November 2026 (diperbarui 23 November 2026 — Tahap 15A, 15B & Tahap 7)
 
 ## 1. Ringkasan
 
@@ -20,6 +20,7 @@ Perubahan dilakukan bertahap dan diuji setelah setiap tahap:
 | 15A | Identitas visual: token warna/font terpusat, kelas semantik, tampilan publik & admin | Selesai, disetujui |
 | 15B | Audit & penataan source code, dokumentasi empat struktur data (tanpa perubahan perilaku) | Selesai, diuji |
 | 15C | Dokumentasi teknis: peta source code, alur aplikasi, CRUD, dan peta backend | Selesai (dokumentasi saja) |
+| 7 | Perbaikan keamanan & kesiapan deployment (URL API, rate limit, header, TLS opsional, error handling) | Selesai, diuji |
 
 Desain dan fitur existing dipertahankan. Konsep struktur data tugas tetap ada:
 Array/List, Hash Map, Tree, dan Bubble Sort. Penjelasan lengkapnya ada di
@@ -261,3 +262,34 @@ menjadi baseline visual.
   terjadi pukul **15:07:35** (temuan Tahap 14, sebelum 15B); tidak ada event
   setelahnya. Event 15B seluruhnya masuk ke `brookies_db_test` (terakhir
   16:10:52).
+
+## 7. Tahap 7 — Perbaikan Keamanan & Kesiapan Deployment
+
+Perubahan bersifat minimal dan tidak mengubah fitur, desain, struktur data,
+database, atau nilai `.env`.
+
+| File | Perubahan |
+| --- | --- |
+| `src/services/api.js` | Fallback `localhost:3000` hanya saat `import.meta.env.DEV`. Production tanpa `VITE_API_URL` menampilkan pesan konfigurasi yang jelas. |
+| `vite.config.js` | Plugin build menghapus `ekspor-localstorage.html` dari hasil build; file sumber tetap ada untuk dev server. |
+| `server/middleware/rateLimit.js` | Baru. Pembatas 5 percobaan login per IP per 15 menit, respons generik + `Retry-After`. |
+| `server/middleware/security.js` | Baru. Header `nosniff`, `DENY`, `no-referrer`, COOP, Permissions-Policy, dan HSTS hanya saat produksi. |
+| `server/server.js` | `X-Powered-By` dinonaktifkan, `trust proxy` diatur, header keamanan dipasang, `/api/db-check` tidak lagi menampilkan nama database, log start tidak menyebut nama database. |
+| `server/config/env.js` | Opsi `DB_SSL` / `DB_SSL_CA`; validasi fail-fast jika `NODE_ENV=production` memakai JWT placeholder. |
+| `server/config/database.js` | TLS MySQL opsional dan eksplisit; koneksi lokal tetap tanpa TLS. |
+| `server/routes/auth.js` | Dummy `bcrypt.compare` saat username tidak ditemukan untuk menyamakan timing; pembatas login dipasang. |
+| `server/middleware/errorHandler.js` | Detail error internal tidak pernah dikirim ke client, terlepas dari `NODE_ENV`. |
+| `.env.example` | Mendokumentasikan `DB_SSL`, `DB_SSL_CA`, `NODE_ENV`, dan kewajiban `VITE_API_URL` saat build produksi. |
+
+### Hasil pengujian Tahap 7
+
+- `npm run lint` (oxlint): **0 error**. ESLint tidak terpasang di proyek; oxlint adalah linter yang dikonfigurasi.
+- Build production: berhasil, 30 file; `ekspor-localstorage.html` tidak ikut; `localhost:3000` tidak ada di bundle; pesan konfigurasi tampak jika env kosong; env dummy terpakai sebagai URL aktif.
+- `npm audit --omit=dev`: **0 kerentanan**.
+- Backend uji di `PORT=3200` dengan `DB_NAME=brookies_demo_db` dan `NODE_ENV=production`: **30/30 pemeriksaan lulus** (health, header, CORS, db-check, auth, seluruh endpoint GET, validasi, rate limit 401→429, timing, 157 baris).
+- Database utama dan demo tetap **157 baris**; `.env` tidak diubah; tidak ada commit/push/deploy.
+
+### Masih memerlukan konfigurasi hosting
+
+- Netlify: `VITE_API_URL` (wajib, tersedia saat build), Node 22.
+- Render: `NODE_ENV=production`, `JWT_SECRET` baru (milik pemilik), `DB_*` dari MySQL terkelola, `DB_SSL=true` bila didukung, `CORS_ORIGIN` domain Netlify, health check `/api`.

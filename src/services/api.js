@@ -8,8 +8,22 @@
 
 import { ambilToken, hapusToken, simpanToken } from './storage';
 
-// Alamat backend bisa diubah lewat VITE_API_URL di file .env frontend.
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL_DARI_ENV = typeof import.meta.env.VITE_API_URL === 'string'
+  ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '')
+  : '';
+
+const PESAN_KONFIGURASI_API =
+  'VITE_API_URL belum diisi. Tambahkan environment variable VITE_API_URL ' +
+  'pada pengaturan build frontend (misalnya https://backend-anda.onrender.com), lalu build ulang.';
+
+// Development tetap bisa memakai backend lokal tanpa menyetel env var.
+// Production tidak punya fallback: konfigurasi yang hilang harus terlihat jelas.
+const BASE_URL = (() => {
+  if (API_URL_DARI_ENV) return API_URL_DARI_ENV;
+  if (import.meta.env.DEV) return 'http://localhost:3000';
+  console.error(`[KONFIGURASI] ${PESAN_KONFIGURASI_API}`);
+  return '';
+})();
 
 // Penanda 401: callback dipasang App.jsx agar state login ikut logout.
 // Flag mencegah callback dipanggil berulang saat beberapa request gagal bersamaan.
@@ -35,6 +49,8 @@ function tangani401() {
 // PEMBUNGKU FETCH
 // ============================================================
 async function permintaan(path, { method = 'GET', body, auth = true } = {}) {
+  if (!BASE_URL) throw gagalApi(PESAN_KONFIGURASI_API, 0);
+
   const header = { 'Content-Type': 'application/json' };
 
   // Token dikirim hanya untuk endpoint yang memerlukan autentikasi.

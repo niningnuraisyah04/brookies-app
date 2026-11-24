@@ -2,9 +2,26 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
+
+// Alat ekspor lama tetap dipakai di dev server, tetapi tidak perlu ikut ke CDN.
+function abaikanEksporLocalStorageSaatBuild() {
+  let outDir = ''
+  return {
+    name: 'abaikan-ekspor-localstorage-saat-build',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir)
+    },
+    closeBundle() {
+      fs.rmSync(path.join(outDir, 'ekspor-localstorage.html'), { force: true })
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), abaikanEksporLocalStorageSaatBuild()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
