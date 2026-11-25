@@ -124,7 +124,7 @@ bukan implementasi hash table dari nol.
   menjadi array `allBahan` untuk tabel dan dropdown.
 - `src/features/shared/crud.js:74` — `data.dataBahan.get(form.idBahan)` saat
   menghitung harga satuan pengeluaran kategori Bahan Baku.
-- `src/features/shared/EntityModal.jsx:14` — `.get()` pada form pengeluaran.
+- `src/features/shared/EntityModal.jsx:16` — `.get()` pada form pengeluaran.
 - `src/features/resep/Resep.jsx:10` — `.get(x.idBahan)?.nama` untuk menampilkan
   nama bahan pada tabel resep.
 - `src/constants/app.js:15` — `new Map()` kosong sebagai nilai awal.
@@ -266,7 +266,10 @@ kembali ke state permanen maupun API.
   `resepObj`). `dataBahanAwal` dan `dataResepAwal` di file yang sama saat ini
   tidak diimpor komponen mana pun; yang dipakai hanya `dataMenu`.
 - **Tidak ada** implementasi stack, queue, graph, linked list, heap, atau
-  trie di `src/` maupun `server/`. Rekursi hanya ada pada `tree.js:21`.
+  trie di `src/` maupun `server/`. Rekursi aktual ada pada
+  `src/structures/tree.js:87-88`: `hitung()` memanggil dirinya sendiri lewat
+  `n.anak.forEach(hitung)`, lalu dijalankan sebagai `hitung(akar)`. Baris 21
+  hanya komentar tentang relasi parent → child, bukan rekursi.
 
 ---
 
@@ -276,8 +279,10 @@ Urutan membaca yang disarankan untuk menjelaskan ke dosen:
 
 1. **Buka `src/structures/arrayList.js` terlebih dahulu.**
    Ini yang paling sederhana: empat baris operasi Array yang dipakai langsung
-   oleh proses CRUD. Lanjutkan ke `src/features/shared/crud.js` baris 28–39
-   dan 142–162 untuk melihat pemakaiannya pada Create/Update/Delete.
+   oleh proses CRUD. Lanjutkan ke `src/features/shared/crud.js:33-39` untuk
+   melihat `susunItem()` (baris 28–32 adalah komentar Array/List), dan
+   `src/features/shared/crud.js:142-162` untuk `delEntity()` pada
+   Create/Update/Delete.
 
 2. **Kedua, buka `src/structures/hashMap.js`.**
    Perhatikan bahwa ini pembungkus `Map` native, bukan hash table buatan

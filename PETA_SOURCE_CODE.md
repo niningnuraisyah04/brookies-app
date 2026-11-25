@@ -97,7 +97,7 @@ src/
 │   └── shared/              crud.js, EntityModal.jsx, tableHelpers.jsx
 ├── hooks/                   Logika reusable dengan state React
 │   ├── useAppData.js        Loader 7 endpoint + pembentukan Hash Map
-│   └── useDerivedData.js    Hash Map → array, Tree laporan, daftar tahun
+│   └── useDerivedData.js    Map bahan → array, Tree laporan, daftar tahun
 ├── layouts/                 Kerangka halaman
 │   ├── AdminLayout.jsx      + AdminHeader.jsx, AdminSidebar.jsx
 │   └── PublicLayout.jsx     + PublicHeader.jsx, PublicFooter.jsx
@@ -118,8 +118,8 @@ src/
 | --- | --- | --- | --- |
 | `components/common/` | UI presentasional | `.jsx` | Dipakai semua halaman. Tidak mengimpor `features/` atau `hooks/`, sehingga tidak ada siklus. |
 | `features/<halaman>/` | Tampilan per menu admin | `.jsx` | Menerima props dari `App.jsx`; memanggil `bubbleSort`, `utils`, dan komponen umum. |
-| `features/shared/` | Modal form & orkestrasi CRUD | `.js`/`.jsx` | `crud.js` memakai `structures/arrayList.js` dan `services/api.js`. `EntityModal.jsx` memakai Hash Map lewat props. |
-| `hooks/` | State & efek aplikasi | `.js` | `useAppData` → `api` + `hashMap`; `useDerivedData` → `tree`. Hasilnya dikonsumsi `App.jsx`. |
+| `features/shared/` | Modal form & orkestrasi CRUD | `.js`/`.jsx` | `crud.js` memakai `structures/arrayList.js` dan `services/api.js`. `EntityModal.jsx` menerima `Map` bahan lewat props dan memakai API `Map` native (`.get()`) untuk lookup. |
+| `hooks/` | State & efek aplikasi | `.js` | `useAppData` memanggil `buatHashMapBahan()` dari `structures/hashMap.js` dan menyimpan `data.dataBahan` sebagai `Map`; `useDerivedData` memakai API `Map` native (`.entries()`) dan `tree`. Hasilnya dikonsumsi `App.jsx`. |
 | `services/` | Transport data | `.js` | `api.js` → `storage.js`. Tidak pernah mengimpor hook; 401 dikirim lewat callback `aturPenangan401`. |
 | `structures/` | Algoritma/struktur murni | `.js` | Tidak mengimpor apa pun. Dipanggil hooks/features. |
 | `algorithms/` | Pengurutan tabel | `.js` | Tidak mengimpor apa pun. Dipanggil 4 halaman. |
@@ -193,8 +193,8 @@ File root penting: `index.html` (mount `#root` + `/src/main.jsx`), `vite.config.
 | `crud.js` | `src/features/shared/` | `useCrud`: `startAdd/startEdit/saveEntity/delEntity`, Array/List, validasi frontend | Saat menambah/mengubah/hapus entitas |
 | `EntityModal.jsx` | `src/features/shared/` | Satu form dinamis untuk 5 jenis data | Saat mengubah field form |
 | `tableHelpers.jsx` | `src/features/shared/` | Tombol Edit/Hapus + kartu tabel | Saat mengubah aksi baris tabel |
-| `useAppData.js` | `src/hooks/` | `Promise.all` 7 endpoint, Hash Map bahan, muat ulang data | Saat mempelajari dari mana data berasal |
-| `useDerivedData.js` | `src/hooks/` | Hash Map → array, Tree laporan, daftar tahun | Saat mempelajari data turunan |
+| `useAppData.js` | `src/hooks/` | `Promise.all` 7 endpoint, memanggil `buatHashMapBahan()` untuk membentuk `Map` bahan, muat ulang data | Saat mempelajari dari mana data berasal |
+| `useDerivedData.js` | `src/hooks/` | `Map` bahan (`.entries()`) → array `allBahan`, Tree laporan, daftar tahun | Saat mempelajari data turunan |
 | `api.js` | `src/services/` | Satu tempat `fetch`, token, envelope, error 401 | Saat menambah endpoint atau mengubah URL backend |
 | `storage.js` | `src/services/` | Token JWT di `localStorage` (`brookies_token`) | Saat mengubah sesi login |
 | `app.js` | `src/constants/` | `status`, `saluran`, `kategoriPengeluaran`, pesan 401, `dataAwal` | Saat menambah opsi pilihan |
@@ -202,7 +202,7 @@ File root penting: `index.html` (mount `#root` + `/src/main.jsx`), `vite.config.
 | `utils.js` | `src/lib/` | `rupiah`, `tanggalID`, `cn` | Saat mengubah format tampilan |
 | `bubbleSort.js` | `src/algorithms/` | Pengurutan salinan array | Saat mengubah urutan tabel |
 | `arrayList.js` | `src/structures/` | 4 operasi Array/List immutable | Saat mempelajari CRUD sisi frontend |
-| `hashMap.js` | `src/structures/` | `Map` native untuk lookup bahan | Saat mempelajari pencarian bahan by ID |
+| `hashMap.js` | `src/structures/` | Pembungkus `Map` native: `buatHashMapBahan`, `cariBahan`, `ubahStokBahan` | Saat mempelajari struktur Hash Map; perhatikan fungsi mana yang benar-benar dipanggil |
 | `tree.js` | `src/structures/` | `NodeLaporan` + `bangunTreeLaporan` | Saat mempelajari laporan hierarkis |
 | `server.js` | `server/` | CORS, JSON, health check, mount router, 404, error handler, shutdown | Saat menambah router atau middleware global |
 | `routes/auth.js` | `server/routes/` | `POST /api/auth/login`, `GET /api/auth/me` | Saat mengubah login/JWT |
@@ -220,6 +220,13 @@ File root penting: `index.html` (mount `#root` + `/src/main.jsx`), `vite.config.
 | `database.js` | `server/config/` | Pool `mysql2` + `cekKoneksiDatabase`, `tutupKoneksiDatabase`, `default db` | Saat mengubah koneksi/health check |
 | `apiError.js` | `server/utils/` | `ApiError`, `badRequest`, `unauthorized`, `notFound`, `asyncHandler` | Saat menambah jenis error |
 | `002_snapshot_resep_produksi.js` | `server/migrations/` | Tabel `produksi_detail` + FK + backfill | Saat mempelajari asal snapshot |
+
+**Catatan pembedaan Hash Map:** yang dipanggil dari `src/structures/hashMap.js`
+hanya `buatHashMapBahan()` di `src/hooks/useAppData.js:27`. `cariBahan()` dan
+`ubahStokBahan()` belum memiliki pemanggil. File lain memakai API `Map` native
+secara langsung (`new Map()`, `.get()`, `.entries()`); itu **bukan** pemanggilan
+fungsi dari modul `hashMap.js`. Penyesuaian stok produksi terjadi di backend
+MySQL, bukan lewat `ubahStokBahan()`.
 
 ---
 
@@ -247,7 +254,7 @@ flowchart TD
     LoginRoute -- "token" --> Muat["useAppData.muatSemuaData()<br/>Promise.all 7 endpoint"]
     AuthRoute -- "admin valid" --> Muat
 
-    Muat --> Derive["useDerivedData.js<br/>Hash Map → array, Tree, tahun"]
+    Muat --> Derive["useDerivedData.js<br/>Map bahan → array, Tree, tahun"]
     App --> AdminLayout["AdminLayout + AdminHeader/AdminSidebar"]
     AdminLayout --> Pages["features/*: 7 halaman admin"]
     Pages --> Crud["features/shared/crud.js<br/>Array/List + EntityModal"]
@@ -277,8 +284,8 @@ flowchart TD
 5. `muatSemuaData()` menjalankan **tujuh request sekaligus**: `daftarBahan`,
    `daftarResep`, `daftarTransaksi`, `daftarPengeluaran`, `daftarProduksi`,
    `dashboard`, dan `laporan` (`useAppData.js:20–24`).
-6. `useDerivedData` mengubah Hash Map menjadi array `allBahan`, membangun Tree
-   laporan, dan menyusun `daftarTahun`.
+6. `useDerivedData` mengubah `Map` bahan menjadi array `allBahan` lewat
+   `data.dataBahan.entries()`, membangun Tree laporan, dan menyusun `daftarTahun`.
 7. `App.jsx` memilih konten salah satu dari tujuh halaman admin; halaman dimuat
    malas (`lazy`) dan dibungkus `Suspense`.
 8. Setiap request melewati `services/api.js`, yang menyisipkan header
@@ -339,8 +346,9 @@ sequenceDiagram
 `useAppData.muatSemuaData()` → `api.daftarBahan()` → `GET /api/bahan` →
 `authMiddleware` → handler `routes/bahan.js` →
 `SELECT id_bahan AS id, nama_bahan AS nama, ... FROM bahan_baku` →
-`buatHashMapBahan()` → `data.dataBahan` → `useDerivedData` → `allBahan` →
-tabel `BahanBaku.jsx`.
+`buatHashMapBahan()` (`src/structures/hashMap.js`, dipanggil di
+`useAppData.js:27`) → `data.dataBahan` (`Map`) → `useDerivedData` memakai
+`.entries()` → `allBahan` → tabel `BahanBaku.jsx`.
 
 ### Delete
 
@@ -460,7 +468,7 @@ Tabel bisnis: `admin`, `bahan_baku`, `resep`, `transaksi`, `pengeluaran`,
 | **Laporan keuntungan** | `src/features/laporan/Laporan.jsx` | `hooks/useDerivedData.js`, `structures/tree.js`, `laporanController.js` | Tree dibangun di frontend dari array API |
 | **Dashboard** | `src/features/dashboard/Dashboard.jsx` | `laporanController.js` (`ringkasanDashboard`) | Grafik 12 bulan via `Map` native di server |
 | **Array / List** | `src/structures/arrayList.js` | `crud.js` | Buka lebih dulu; lihat `susunItem` & `delEntity` |
-| **Hash Map** | `src/structures/hashMap.js` | `useAppData.js:27`, `useDerivedData.js:9`, `Resep.jsx:10` | `Map` native, bukan hash buatan sendiri |
+| **Hash Map** | `src/structures/hashMap.js` | **Fungsi modul:** `buatHashMapBahan()` di `useAppData.js:27`. **API `Map` native langsung:** `.entries()` di `useDerivedData.js:9`, `.get()` di `crud.js:74`, `EntityModal.jsx:16`, `Resep.jsx:10`. `cariBahan()` dan `ubahStokBahan()` belum memiliki pemanggil. | `Map` native, bukan hash buatan sendiri; pembaruan stok produksi lewat backend MySQL |
 | **Tree** | `src/structures/tree.js` | `useDerivedData.js:12`, `Laporan.jsx:11` | n-ary, traversal `hitung()` post-order |
 | **Bubble Sort** | `src/algorithms/bubbleSort.js` | `BahanBaku.jsx`, `Pengeluaran.jsx`, `Transaksi.jsx`, `Resep.jsx` | Tanpa early exit; hasil hanya untuk urutan tabel |
 | **Warna/font/desain** | `src/index.css` | `src/App.css` | Token 15A; jangan ubah palet tanpa persetujuan |
